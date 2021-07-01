@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style></style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  </head>
+  <body>
+    <div class="postpage-container">
+      <div class="postpage-big-title-container">
+        <h1 class="postpage-big-title">Create Article!</h1>
+      </div>
+      <div class="postpage-forms-container">
+        <div class="postpage-forms-author-container">
+          <input
+            class="postpage-author"
+            type="text"
+            placeholder="닉네임을 입력하세요."
+          />
+        </div>
+        <div class="postpage-forms-title-container">
+          <input
+            class="postpage-title"
+            type="text"
+            placeholder="제목을 입력하세요."
+          />
+        </div>
+        <div class="postpage-forms-content-container">
+          <textarea
+            class="postpage-content"
+            type="textarea"
+            rows="30"
+            cols="50"
+            placeholder="내용을 입력하세요."
+          ></textarea>
+        </div>
+        <div class="postpage-forms-password-container">
+          <input
+            class="postpage-password"
+            type="password"
+            placeholder="게시글에 설정할 비밀번호를 입력하세요."
+          />
+        </div>
+        <div class="postpage-buttons-container">
+          <button class="postpage-submit-button" onclick="submitArticleForm()">
+            Submit
+          </button>
+          <button
+            class="postpage-home-button"
+            onclick="window.location.href='/'"
+          >
+            홈으로
+          </button>
+        </div>
+      </div>
+    </div>
+    <script>
+        <% if (isModify) { %>
+              while(true){
+                let pwCheckResult = checkPassword('<%= articleId %>');
+                if (pwCheckResult['isPasswordRight']){
+                  break;
+                } else if (pwCheckResult['retryQuestionResult']) {
+                  continue;
+                } else {
+                  window.location.href = '/article/<%= articleId %>';
+                  break;
+                }
+              }
+            fillArticleForm('<%= author %>','<%= title %>','<%= content %>');
+            $('.postpage-big-title').text('Modify Article!');
+            $('.postpage-submit-button').text('수정하기');
+            document.querySelector('.postpage-submit-button').setAttribute("onclick","modifyArticle('<%= articleId %>')");
+        <% } %>
+
+        function fillArticleForm(author,title,content){
+          $('.postpage-author').val(author);
+          $('.postpage-title').val(title);
+          $('.postpage-content').val(content);
+        }
+
+        function checkPassword(articleId){
+            const password = prompt("글 수정을 원하시면 비밀번호를 입력하세요.");
+            let isPasswordRight = false;
+            let retryQuestionResult = false;
+            if (!password) {
+              console.log(password)
+              return {retryQuestionResult,isPasswordRight};
+            }
+            $.ajax({
+            type: "POST",
+            url: `/article/${articleId}/modify/checkpw`,
+            async:false,
+            data: {
+            password,
+            },
+            success: function (response) {
+                if (response['result'] !== "success") {
+                    isPasswordRight = false;
+                    if(confirm("비밀번호가 다릅니다. 다시 시도하시겠습니까?")){
+                      retryQuestionResult = true;
+                    }else{
+                      retryQuestionResult = false;
+                    }
+                } else {
+                    isPasswordRight = true;
+                }
+            },
+        });
+        return {retryQuestionResult,isPasswordRight};
+        }
+
+      function collectArticleFormData() {
+        const author = $(".postpage-author").val();
+        const title = $(".postpage-title").val();
+        const content = $(".postpage-content").val();
+        const password = $(".postpage-password").val();
+
+        if (!(author && title && content && password)) {
+          return false;
+        }
+        return { author, title, content, password}
+      }
+
+      function modifyArticle(articleId) {
+        const articleFormData = collectArticleFormData()
+
+        if (articleFormData === false) {
+          alert("입력되지 않은 항목이 있습니다!");
+          return;
+        }
+
+        const lastFixDate = new Date().getTime();
+
+        $.ajax({
+          type: "PATCH",
+          url: `/article/${articleId}/modify`,
+          data: {
+            lastFixDate,
+            ...articleFormData
+          },
+          success: function (response) {
+            alert(response['msg']);
+            window.location.href = `/article/${articleId}`;
+          },
+        });
+      }
+
+      function submitArticleForm() {
+        const articleFormData = collectArticleFormData()
+
+        if (articleFormData === false) {
+          alert("입력되지 않은 항목이 있습니다!");
+          return;
+        }
+
+        const date = new Date().getTime();
+
+        $.ajax({
+          type: "POST",
+          url: "/article/create",
+          data: {
+            date,
+            ...articleFormData
+          },
+          success: function (response) {
+            if (response["result"] === "success") {
+              alert("글 작성이 완료되었습니다☺");
+              window.location.href = "/";
+            }
+          },
+        });
+      }
+    </script>
+  </body>
+</html>

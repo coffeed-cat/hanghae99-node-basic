@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Our Blog</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script>
+      $(document).ready(() => {
+        loadAllArticles();
+      });
+
+      function loadAllArticles() {
+        $.ajax({
+          type: "GET",
+          url: "/article/load-all-articles",
+          data: {},
+          success: function (response) {
+            for (i in response) {
+              const { _id, date, author, title } = response[i];
+
+              const nowDate = new Date(date);
+
+              const mydate = `${nowDate.getFullYear()}년 ${
+                nowDate.getMonth() + 1
+              }월 ${nowDate.getDate()}일`;
+
+              const newData = `
+                <p class="main-article">
+                    ${Number(i) + 1}
+                    <a href="/article/${_id}" id=${_id}>${title}</a>
+                    ${author} ${mydate}
+                </p>
+                `;
+              $(".main-articles-list-container").append(newData);
+            }
+          },
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <div class="main-container">
+      <div class="main-title-container">
+        <h1 class="main-title">게시글 목록</h1>
+      </div>
+
+      <div class="main-articles-list-container"></div>
+      <button onclick="window.location='/article/create'">
+        Create Article!!
+      </button>
+    </div>
+  </body>
+</html>

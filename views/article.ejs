@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+      .article-content-container {
+        width: 500px;
+      }
+      .article-content {
+        font-size: 40px;
+      }
+    </style>
+    <script>
+      function removeArticle(articleId) {
+        const password = prompt("글 삭제를 원하시면 비밀번호를 입력하세요.");
+        $.ajax({
+          type: "DELETE",
+          url: `/article/${articleId}/remove`,
+          data: {
+            password,
+          },
+          success: function (response) {
+            if (response["result"] === "success") {
+              alert("글 삭제가 완료되었습니다🗑");
+              window.location.href = "/";
+            } else {
+              alert("비밀번호를 다시 확인해주세요.");
+            }
+          },
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <div class="article-container">
+      <div class="article-title-container">
+        <h1 class="article-title"><%= title %></h1>
+      </div>
+
+      <div class="article-content-container">
+        <p class="article-content"><%= content %></p>
+      </div>
+
+      <div class="article-author-container">
+        <p class="article-author"><%= author %></p>
+      </div>
+
+      <div class="article-date-container">
+        <p><%= date %></p>
+      </div>
+      <div class="article-buttons-container">
+        <button
+          class="article-modify-button"
+          onclick="window.location='/article/<%= _id %>/modify'"
+        >
+          수정하기
+        </button>
+        <button
+          class="article-remove-button"
+          onclick="removeArticle('<%= _id %>')"
+        >
+          글 삭제하기
+        </button>
+        <button class="postpage-home-button" onclick="window.location.href='/'">
+          홈으로
+        </button>
+      </div>
+    </div>
+  </body>
+</html>
